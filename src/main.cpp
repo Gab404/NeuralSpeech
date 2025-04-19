@@ -5,7 +5,6 @@
 // Globals variables
 volatile float window[WIN_SIZE] = {0.0f};
 volatile bool windowReady = false;
-volatile float previousGain = 1.0f;
 
 float mfcc[N_MFCC];
 
@@ -13,6 +12,7 @@ float winBuffer[WIN_SIZE];
 float vImag[WIN_SIZE] = {0.0f};
 
 uint8_t countWarmUpFrames = 0;
+float previousGain = 1.0f;
 
 Adafruit_SSD1306 display(128, 64);
 ArduinoFFT<float> FFT = ArduinoFFT<float>(winBuffer, vImag, WIN_SIZE, 8000);
@@ -38,7 +38,7 @@ void loop() {
       vImag[i + (WIN_SIZE / 2)] = 0.0f;
     }
 
-    applyAGC(winBuffer);
+    previousGain = applyAGC(winBuffer, previousGain);
 
     if (countWarmUpFrames >= WARM_UP_FRAMES) {
       getFFT(winBuffer, FFT); // time = 22 380 us

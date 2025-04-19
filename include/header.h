@@ -8,7 +8,7 @@
 #define N_MFCC 13
 #define TAPS 57
 #define N_SAMPLE 1200
-#define WARM_UP_FRAMES 20
+#define WARM_UP_FRAMES 5
 
 // plink -serial COM5 -sercfg 460800 > "C:\Users\gabri\Downloads\audio.bin"
 
@@ -24,6 +24,6 @@ void writeSample(uint16_t sample);
 
 void getMFCC(float window[WIN_SIZE], float mfccArray[N_MFCC]);
 
-void applyAGC(float* window);
+float applyAGC(float* window, float previousGain);
 
 #endif /*HEADER_H*/
