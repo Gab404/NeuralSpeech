@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "header.h"
 
-const int16_t coeff[TAPS] PROGMEM = {
+const int16_t coeff[TAPS] = {
     -310, -377, -451, -386, -148, 229,
     650, 975, 1080, 909, 511, 37, -317,
     -388, -127, 366, 863, 1102, 902, 266,
@@ -12,8 +12,8 @@ const int16_t coeff[TAPS] PROGMEM = {
     1080, 975, 650, 229, -148, -386, -451, -377, -310};
 
 
-float applyRIF(u_int16_t buffer[TAPS], uint8_t indexBuffer) {
-    int32_t result = 0;
+float applyRIF(uint16_t buffer[N_SAMPLE], uint16_t indexBuffer) {
+    int64_t result = 0;
     // uint16_t finalResult;
     uint8_t currIndexBuffer = indexBuffer;
     // int32_t tmp;
@@ -23,13 +23,7 @@ float applyRIF(u_int16_t buffer[TAPS], uint8_t indexBuffer) {
         currIndexBuffer = (currIndexBuffer - 1 + TAPS) % TAPS;
     }
 
-    // tmp = result >> 15;
-    // if (tmp < 0)
-    //     tmp = 0;
-    // else if (tmp > 65535)
-    //     tmp = 65535;
+    result -= 70000000; // Normalisation entre -1 et 1 avec un max de 140 000 000
 
-    // finalResult = (uint16_t)tmp;
-    
-    return (float)(result / 2147483648.0f);
+    return ((float)result) / 70000000.0f;
 }

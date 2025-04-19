@@ -1,35 +1,83 @@
 #include <arduino.h>
+#include "header.h"
+#include "globals.h"
+
+#define FS_ORIGINAL 32000
+#define FS_TARGET 8000
+#define DECIMATION_FACTOR (FS_ORIGINAL/FS_TARGET)
+
+bool bufferReady = false;
+uint16_t samplesCollected = 0;
+uint8_t downsampleCounter = 0;
+
+uint16_t buffer[N_SAMPLE];
+uint16_t indexBuffer;
+uint16_t indexBufferToWin;
+
+uint16_t indexWindow = 0;
 
 void TC0_Handler() {
     // Lit le registre d'état pour effacer le drapeau d'interruption
-    TC0->TC_CHANNEL[0].TC_SR;
+    volatile uint32_t status = TC0->TC_CHANNEL[0].TC_SR;
+    (void)status; // Évite un warning "unused variable"
     // Démarre une nouvelle conversion ADC
     ADC->ADC_CR = ADC_CR_START;
 }
 
+// Modification de ADC_Handler
+void ADC_Handler() {
+    if (ADC->ADC_ISR & ADC_IER_EOC7) {
+        uint16_t value = ADC->ADC_CDR[7];
+        buffer[indexBuffer] = value;
+
+        // On attend de stocker les 57 (TAPS) premières valeurs dans le buffer
+        if (bufferReady == false) {
+            if (++samplesCollected >= TAPS) {
+                bufferReady = true;
+                indexBufferToWin = indexBuffer;
+            }
+            indexBuffer = (indexBuffer + 1) % N_SAMPLE;
+            return;
+        }
+        
+        // Filtrage et décimation
+        if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
+            downsampleCounter = 0;
+            window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin);
+            if (++indexWindow >= WIN_SIZE / 2) {
+                windowReady = true;
+                indexWindow = 0;
+            }
+        }
+        
+        if (!windowReady)
+            indexBufferToWin = (indexBufferToWin + 1) % N_SAMPLE;
+
+        indexBuffer = (indexBuffer + 1) % N_SAMPLE;
+    }
+}
+
 void setupADC() {
-    PMC->PMC_PCER1 |= PMC_PCER1_PID37; // Active le périphérique ADC
-    ADC->ADC_MR = ADC_MR_PRESCAL(0) // Définit le diviseur de fréquence à 255
-                  | ADC_MR_STARTUP_SUT64 // Définit le temps de démarrage à 64 périodes d'ADC_CLK
-                  | ADC_MR_TRACKTIM(15) // Définit le temps de suivi à 15 périodes d'ADC_CLK
-                  | ADC_MR_SETTLING_AST3;// Définit le temps de stabilisation à 17 périodes d'ADC_CLK
-  
-    ADC->ADC_CHER = 0xC0; // Active le canal 7 (A0)
-  
-    // Configure Timer Counter 0 Channel 0 (TC0) pour samplingFrequency
-    PMC->PMC_PCER0 |= PMC_PCER0_PID27; // Active le périphérique TC0
+    // 1. Configuration ADC plus précise
+    PMC->PMC_PCER1 |= PMC_PCER1_PID37;
+    ADC->ADC_MR = ADC_MR_PRESCAL(1)          // Meilleure précision
+                | ADC_MR_STARTUP_SUT64
+                | ADC_MR_TRACKTIM(15)
+                | ADC_MR_SETTLING_AST17;     // Plus long temps de stabilisation
+    
+    ADC->ADC_CHER = ADC_CHER_CH7;            // Canal 7 uniquement
+
+    // 2. Configuration timer exacte pour 32kHz
+    PMC->PMC_PCER0 |= PMC_PCER0_PID27;
+    uint32_t rc = (VARIANT_MCK / 128) / FS_ORIGINAL; // 84MHz/128/32000 = 20.507
     TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
-    // Définit la source d'horloge à TCLK4 (MCK / 128, 84 MHz / 128 = 656.25 kHz)
+    TC0->TC_CHANNEL[0].TC_RC = rc; // 20 ou 21 selon besoin
     
-    // Active le déclenchement de comparaison RC
-    // Définit la valeur RC pour une fréquence samplingFrequency Hz
-    TC0->TC_CHANNEL[0].TC_RC = 21; // 44Khz -> ( (MCK / 128) / 32000 ) -> 20.51 -> 21
-    // Active l'interruption de comparaison RC
+    // 3. Activation interruptions
     TC0->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
-    // Active l'interruption TC0_IRQn dans le NVIC
     NVIC_EnableIRQ(TC0_IRQn);
-    
-    // activation du compteur
-    // activation du déclenchement logiciel
     TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
-  }
+    
+    ADC->ADC_IER = ADC_IER_EOC7;
+    NVIC_EnableIRQ(ADC_IRQn);
+}
