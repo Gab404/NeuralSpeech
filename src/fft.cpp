@@ -15,9 +15,10 @@ void normalizeByEnergy(float window[WIN_SIZE]) {
 }
 
 void getFFT(float window[WIN_SIZE], ArduinoFFT<float> FFT) {
-    FFT.dcRemoval(window, WIN_SIZE);
-    FFT.windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD);
-    FFT.compute(FFT_FORWARD);
-    FFT.complexToMagnitude();
+
+    FFT.dcRemoval(window, WIN_SIZE); // time = 770 us
+    FFT.windowing(FFT_WIN_TYP_HAMMING, FFT_FORWARD); // time = 7 050 us
+    FFT.compute(FFT_FORWARD); // time = 13 170 us
+    FFT.complexToMagnitude(); // time = 1 565 us
 }
 

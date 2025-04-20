@@ -12,9 +12,8 @@ float applyAGC(float* window, float previousGain) {
         sum_squares += window[i] * window[i];
 
     rms = sqrtf(sum_squares / WIN_SIZE);
-    if (rms <= 0.1) { // To avoid increasing the noise (rms < 0.1)
+    if (rms <= 0.1) // To avoid increasing the noise (rms < 0.1)
         return 1.0f;
-    }
 
     gain = TARGET_RMS / (rms + EPSILON);
 

@@ -33,7 +33,7 @@ void ADC_Handler() {
         bool local_isSignalProcessing = isSignalProcessing;
         __enable_irq();
 
-        if (local_isSignalProcessing) {
+        if (local_isSignalProcessing) { // time = 26us 
             buffer[indexBuffer] = value;
 
             // On attend de stocker les 57 (TAPS) premières valeurs dans le buffer
@@ -49,7 +49,7 @@ void ADC_Handler() {
             // Filtrage et décimation
             if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
                 downsampleCounter = 0;
-                window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin);
+                window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin); // time = 25us
                 if (++indexWindow >= WIN_SIZE / 2) {
                     windowReady = true;
                     indexWindow = 0;

@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "header.h"
 
-const int16_t coeff[TAPS] = {
+int16_t coeff[TAPS] = {
     -310, -377, -451, -386, -148, 229,
     650, 975, 1080, 909, 511, 37, -317,
     -388, -127, 366, 863, 1102, 902, 266,
