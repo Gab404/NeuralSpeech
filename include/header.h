@@ -7,8 +7,9 @@
 
 #define N_MFCC 13
 #define TAPS 57
-#define N_SAMPLE 1200
+#define N_SAMPLE 1000
 #define WARM_UP_FRAMES 5
+#define TOTAL_WINDOW 60
 
 // plink -serial COM5 -sercfg 460800 > "C:\Users\gabri\Downloads\audio.bin"
 

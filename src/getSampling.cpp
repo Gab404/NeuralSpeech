@@ -11,7 +11,7 @@ uint16_t samplesCollected = 0;
 uint8_t downsampleCounter = 0;
 
 uint16_t buffer[N_SAMPLE];
-uint16_t indexBuffer;
+uint16_t indexBuffer = 0;
 uint16_t indexBufferToWin;
 
 uint16_t indexWindow = 0;
@@ -28,32 +28,47 @@ void TC0_Handler() {
 void ADC_Handler() {
     if (ADC->ADC_ISR & ADC_IER_EOC7) {
         uint16_t value = ADC->ADC_CDR[7];
-        buffer[indexBuffer] = value;
 
-        // On attend de stocker les 57 (TAPS) premières valeurs dans le buffer
-        if (bufferReady == false) {
-            if (++samplesCollected >= TAPS) {
-                bufferReady = true;
-                indexBufferToWin = indexBuffer;
+        __disable_irq();
+        bool local_isSignalProcessing = isSignalProcessing;
+        __enable_irq();
+
+        if (local_isSignalProcessing) {
+            buffer[indexBuffer] = value;
+
+            // On attend de stocker les 57 (TAPS) premières valeurs dans le buffer
+            if (bufferReady == false) {
+                if (++samplesCollected >= TAPS) {
+                    bufferReady = true;
+                    indexBufferToWin = indexBuffer;
+                }
+                indexBuffer = (indexBuffer + 1) % N_SAMPLE;
+                return;
             }
+            
+            // Filtrage et décimation
+            if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
+                downsampleCounter = 0;
+                window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin);
+                if (++indexWindow >= WIN_SIZE / 2) {
+                    windowReady = true;
+                    indexWindow = 0;
+                }
+            }
+            
+            if (!windowReady)
+                indexBufferToWin = (indexBufferToWin + 1) % N_SAMPLE;
+
             indexBuffer = (indexBuffer + 1) % N_SAMPLE;
-            return;
-        }
-        
-        // Filtrage et décimation
-        if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
+        } else {
+            __disable_irq();
+            indexBuffer = 0;
+            indexWindow = 0;
+            bufferReady = false;
+            samplesCollected = 0;
             downsampleCounter = 0;
-            window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin);
-            if (++indexWindow >= WIN_SIZE / 2) {
-                windowReady = true;
-                indexWindow = 0;
-            }
+            __enable_irq();
         }
-        
-        if (!windowReady)
-            indexBufferToWin = (indexBufferToWin + 1) % N_SAMPLE;
-
-        indexBuffer = (indexBuffer + 1) % N_SAMPLE;
     }
 }
 

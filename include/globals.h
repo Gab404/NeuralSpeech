@@ -7,5 +7,6 @@
 
 extern volatile float window[WIN_SIZE];
 extern volatile bool windowReady;
+extern volatile bool isSignalProcessing;
 
 #endif /*GLOBALS_H*/
