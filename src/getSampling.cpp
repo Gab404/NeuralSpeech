@@ -49,8 +49,8 @@ void ADC_Handler() {
             // Filtrage et décimation
             if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
                 downsampleCounter = 0;
-                window[indexWindow + (WIN_SIZE / 2)] = applyRIF(buffer, indexBufferToWin); // time = 25us
-                if (++indexWindow >= WIN_SIZE / 2) {
+                window[indexWindow + OVERLAP] = applyRIF(buffer, indexBufferToWin); // time = 25us
+                if (++indexWindow >= WIN_SIZE - OVERLAP) {
                     windowReady = true;
                     indexWindow = 0;
                 }

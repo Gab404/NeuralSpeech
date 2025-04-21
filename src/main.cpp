@@ -2,14 +2,12 @@
 #include "header.h"
 #include "globals.h"
 
-unsigned long time0, time2;
-
 // Globals variables
 volatile float window[WIN_SIZE] = {0.0f};
 volatile bool windowReady = false;
 volatile bool isSignalProcessing = false;
 
-unsigned long timeButtonClicked, timeToStart;
+unsigned long timeButtonClicked;
 
 float matrixMFCC[TOTAL_WINDOW][N_MFCC];
 uint8_t indexMFCC = 0;
@@ -21,7 +19,7 @@ float previousGain = 1.0f;
 
 int buttonState = 0;
 
-Adafruit_SSD1306 display(128, 64);
+// Adafruit_SSD1306 display(128, 64);
 ArduinoFFT<float> FFT = ArduinoFFT<float>(winBuffer, vImag, WIN_SIZE, 8000);
 
 void setup() {
@@ -30,33 +28,31 @@ void setup() {
   // Serial.println("---- Démarrage ----");
 
   pinMode(4, INPUT);
+  pinMode(2, OUTPUT);
 
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.clearDisplay();
+  // display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  // display.clearDisplay();
 
   setupADC();
 }
 
-void loop() { // time = 2.5s for 1s 
+void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
 
   if (!isSignalProcessing && digitalRead(4) == LOW) { // time = 3us
     timeButtonClicked = millis();
     while (millis() - timeButtonClicked <= 1000);
+    digitalWrite(2, HIGH);
     isSignalProcessing = true;
-    time0 = micros();
-
-    // Serial.println("Start");
   }
 
   if (windowReady && isSignalProcessing) {
 
     // Copy window to buffer and shift window
-    for (uint16_t i = 0; i < WIN_SIZE / 2; i++) { // time = 55 us
+    for (uint16_t i = 0; i < WIN_SIZE; i++) { // time = 88 us
       winBuffer[i] = window[i];
-      winBuffer[i + (WIN_SIZE / 2)] = window[i + (WIN_SIZE / 2)];
-      window[i] = window[i + (WIN_SIZE / 2)];
       vImag[i] = 0.0f;
-      vImag[i + (WIN_SIZE / 2)] = 0.0f;
+      if (i >= WIN_SIZE - OVERLAP)
+        window[i - (WIN_SIZE - OVERLAP)] = window[i];
     }
 
     previousGain = applyAGC(winBuffer, previousGain); // time = 770 us
@@ -80,9 +76,7 @@ void loop() { // time = 2.5s for 1s
 
     getMFCC(winBuffer, matrixMFCC[indexMFCC]); // time = 3 350 us
 
-
     if (++indexMFCC >= TOTAL_WINDOW) {
-      time2 = micros();
       for (uint16_t i = 0; i < WIN_SIZE; i++)
         window[i] = 0.0f;
       
@@ -98,8 +92,8 @@ void loop() { // time = 2.5s for 1s
       //   }
       //   Serial.println();
       // }
-      Serial.println(time2 - time0);
       isSignalProcessing = false;
+      digitalWrite(2, LOW);
     }
 
     windowReady = false;
