@@ -10,7 +10,7 @@ bool bufferReady = false;
 uint16_t samplesCollected = 0;
 uint8_t downsampleCounter = 0;
 
-uint16_t buffer[N_SAMPLE];
+uint16_t buffer[N_SAMPLE] = {0};
 uint16_t indexBuffer = 0;
 uint16_t indexBufferToWin;
 
@@ -40,16 +40,18 @@ void ADC_Handler() {
             if (bufferReady == false) {
                 if (++samplesCollected >= TAPS) {
                     bufferReady = true;
-                    indexBufferToWin = indexBuffer;
                 }
                 indexBuffer = (indexBuffer + 1) % N_SAMPLE;
+                indexBufferToWin = indexBuffer;
                 return;
             }
-            
+
             // Filtrage et décimation
             if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
                 downsampleCounter = 0;
                 window[indexWindow + OVERLAP] = applyRIF(buffer, indexBufferToWin); // time = 25us
+                // writeSample(window[indexWindow + OVERLAP]);
+
                 if (++indexWindow >= WIN_SIZE - OVERLAP) {
                     windowReady = true;
                     indexWindow = 0;
@@ -84,9 +86,9 @@ void setupADC() {
 
     // 2. Configuration timer exacte pour 32kHz
     PMC->PMC_PCER0 |= PMC_PCER0_PID27;
-    uint32_t rc = (VARIANT_MCK / 128) / FS_ORIGINAL; // 84MHz/128/32000 = 20.507
+    // uint32_t rc = (VARIANT_MCK / 128) / FS_ORIGINAL; // 84MHz/128/32000 = 20.507
     TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
-    TC0->TC_CHANNEL[0].TC_RC = rc; // 20 ou 21 selon besoin
+    TC0->TC_CHANNEL[0].TC_RC = 21; // 20 ou 21 selon besoin
     
     // 3. Activation interruptions
     TC0->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;

@@ -54,7 +54,7 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       if (i >= WIN_SIZE - OVERLAP)
         window[i - (WIN_SIZE - OVERLAP)] = window[i];
     }
-
+    
     previousGain = applyAGC(winBuffer, previousGain); // time = 770 us
 
     getFFT(winBuffer, FFT); // time = 22 380 us
@@ -83,15 +83,16 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       indexMFCC = 0;
       previousGain = 1.0f;
 
-      // Serial.println("\n-----------------");
+      Serial.println("\n-----------------");
 
-      // for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
-      //   for (uint16_t j = 0; j < N_MFCC; j++) {
-      //     Serial.print(matrixMFCC[i][j]);
-      //     if (j < N_MFCC - 1) Serial.print(",");
-      //   }
-      //   Serial.println();
-      // }
+      for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
+        for (uint16_t j = 0; j < N_MFCC; j++) {
+          Serial.print(matrixMFCC[i][j], 6);
+          if (j < N_MFCC - 1) Serial.print(",");
+        }
+        Serial.println();
+      }
+      
       isSignalProcessing = false;
       digitalWrite(2, LOW);
     }

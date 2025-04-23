@@ -14,16 +14,15 @@ int16_t coeff[TAPS] = {
 
 float applyRIF(uint16_t buffer[N_SAMPLE], uint16_t indexBuffer) {
     int64_t result = 0;
-    // uint16_t finalResult;
     uint8_t currIndexBuffer = indexBuffer;
-    // int32_t tmp;
 
     for (int i = 0; i < TAPS; i++) {
-        result += coeff[i] * buffer[currIndexBuffer];
-        currIndexBuffer = (currIndexBuffer - 1 + TAPS) % TAPS;
+        result += (int64_t)coeff[i] * buffer[currIndexBuffer];
+        currIndexBuffer = (currIndexBuffer - 1) % N_SAMPLE;
     }
 
     result -= 70000000; // Normalisation entre -1 et 1 avec un max de 140 000 000
 
     return ((float)result) / 70000000.0f;
+    // return (uint16_t)((result * 65535) / 140000000);
 }
