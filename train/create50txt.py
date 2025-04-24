@@ -1,7 +1,7 @@
 import os
 
 # 🔧 Spécifie le chemin du dossier où tu veux créer les fichiers
-repertoire = "./dataset/train/Jaune"  # ← remplace par ton chemin
+repertoire = "./dataset/test/Blanc"  # ← remplace par ton chemin
 
 # 🛠 Crée le dossier s'il n'existe pas déjà
 os.makedirs(repertoire, exist_ok=True)

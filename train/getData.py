@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def load_dataset_from_text(dataset_dir, expected_shape=(50, 13)):
+def load_dataset_from_text(dataset_dir, expected_shape=(50, 12)):
     X = []
     Y = []
     label_map = {}
