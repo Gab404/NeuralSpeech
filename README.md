@@ -2,116 +2,100 @@
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/gabriel-guiet-dupre/)
 
-
-
-
-<!-- PROJECT LOGO -->
 <br />
-<div align="center">
+
+<p align="center">
   <h3 align="center">Neural Speech</h3>
-
   <p align="center">
-    Voice recognition on Arduino Due for school project at ECE Paris
-</div>
+    Voice recognition on Arduino Due – ECE Paris Engineering Project
+  </p>
+</p>
 
+---
 
-## Audio Processing Pipeline
+## 🧠 Audio Processing Pipeline
 
 The audio signal undergoes the following processing steps:
 
 1. **Sampling & Filtering**  
-   - Sampled at **32 kHz**
-   - Band-pass FIR filter (300–3400 Hz), stop bands at 0–300 Hz and 4000–16000 Hz
+   - Sampled at **32 kHz**  
+   - FIR Band-pass filter: **300–3400 Hz**  
+   - Stop bands: **0–300 Hz** and **4000–16000 Hz**
 
 <p align="center">
-  <div style="text-align: center;">
-    <img src="./assets/RIF used.png" alt="RIF Used" width="50%" />
-    <p><strong>RIF Used</strong></p>
-  </div>
+  <img src="./assets/RIF used.png" alt="RIF Used" width="50%" />
 </p>
+<p align="center"><strong>RIF Used</strong></p>
 
 2. **Downsampling**  
-   - Downsampled to **8 kHz** for reduced computation
+   - Reduced to **8 kHz** for lightweight processing on embedded device
 
 3. **Framing & Overlap**  
-   - Frame size: **256 samples**
+   - Frame size: **256 samples**  
    - Overlap: **37.5%** (96 samples)
 
 4. **Preprocessing**  
-   - **AGC (Automatic Gain Control)**
-   - **FFT** to convert to frequency domain
+   - **AGC (Automatic Gain Control)**  
+   - **FFT** to convert signal to frequency domain
 
 5. **Mel Filterbank & MFCC Extraction**  
-   - Apply **Mel filters**, **log compression**, then **DCT**
+   - Apply **Mel filters**  
+   - Logarithmic compression  
+   - Discrete Cosine Transform (DCT)  
    - Extract **12 MFCCs per frame**
 
 <p align="center">
-  <div style="display: flex; justify-content: center; gap: 20px;">
-    <div style="text-align: center;">
-      <img src="./assets/Mel_Filter_Application.png" alt="Mel Filter Application" width="100%" />
-      <p><strong>Mel Filter Application</strong></p>
-    </div>
-    <div style="text-align: center;">
-      <img src="./assets/DCT_Matrix_Application.png" alt="DCT Matrix Application" width="87%" />
-      <p><strong>DCT Matrix Application</strong></p>
-    </div>
-  </div>
+  <img src="./assets/Mel_Filter_Application.png" alt="Mel Filter Application" width="45%" />
+  <img src="./assets/DCT_Matrix_Application.png" alt="DCT Matrix Application" width="45%" />
 </p>
+<p align="center"><strong>Mel Filter Application (left) & DCT Matrix Application (right)</strong></p>
 
 6. **Temporal Context**  
-   - Repeat for **50 frames** = **1 second of audio**
-   - Result: matrix of shape **[50 × 12]**
+   - Process repeated for **50 frames** = **1 second of audio**  
+   - Final MFCC matrix shape: **[50 × 12]**
 
+---
 
-## Deep Learning for Classification
+## 🤖 Deep Learning for Classification
 
-After computing the MFCC matrix (12 coefficients across 50 frames, representing 1 second of audio), the features were passed into a lightweight Convolutional Neural Network (CNN) for classification.
+After computing the MFCC matrix, it is passed into a lightweight CNN for binary classification.
 
-**Model architecture:**
-- **Input:** MFCC matrix shaped `(50, 12, 1)`
-- **First Convolutional Block:**
-  - `Conv2D`: 8 filters, kernel size `(3x3)`, activation `ReLU`
-  - `MaxPooling2D`: pool size `(2x2)`
-- **Second Convolutional Block:**
-  - `Conv2D`: 8 filters, kernel size `(3x3)`, activation `ReLU`
-  - `MaxPooling2D`: pool size `(2x2)`
-- **Fully Connected Layers:**
-  - `Flatten`
-  - `Dense` layer with 8 units, activation `ReLU`
-  - `Dense` output layer with 1 unit, activation `Sigmoid` (binary classification)
+### 🧩 Model Architecture
+
+- **Input:** `(50, 12, 1)` MFCC matrix  
+- **Conv2D (8 filters, 3×3)** + **ReLU**  
+- **MaxPooling2D (2×2)**  
+- **Conv2D (8 filters, 3×3)** + **ReLU**  
+- **MaxPooling2D (2×2)**  
+- **Flatten**  
+- **Dense (8 units, ReLU)**  
+- **Dense (1 unit, Sigmoid)** → Binary output
 
 <p align="center">
-  <div style="text-align: center;">
-    <img src="./assets/model.png" alt="RIF Used" width="100%" />
-    <p><strong>My CNN Model</strong></p>
-  </div>
+  <img src="./assets/model.png" alt="CNN Model" width="60%" />
 </p>
+<p align="center"><strong>My CNN Model</strong></p>
 
-This simple CNN is able to capture local patterns in the MFCC representation and perform efficient binary classification.
+The CNN detects local patterns in the MFCC matrix and classifies 1s audio segments.  
+The processing is **real-time**: ~1.5s for recording, processing, and prediction.
 
+---
 
+## 🛠️ Built With
 
-### Built With
+- [PlatformIO](https://platformio.org/)
+- [Arduino Due](https://docs.arduino.cc/hardware/due/)
+- [Python 3.7](https://www.python.org/downloads/release/python-370/)
+- [Tensorflow 2.2](https://www.tensorflow.org/install?hl=fr)
+- [EloquentTinyML](https://github.com/eloquentarduino/EloquentTinyML)
+- [ArduinoFFT](https://github.com/kosme/arduinoFFT)
 
-* [PlatformIO](https://platformio.org/)
-* [Arduino Due](https://docs.arduino.cc/hardware/due/)
-* [Python 3.7](https://www.python.org/downloads/release/python-370/)
-* [Tensorflow 2.2](https://www.tensorflow.org/install?hl=fr)
-* [EloquentTinyML](https://github.com/eloquentarduino/EloquentTinyML)
-* [ArduinoFFT](https://github.com/kosme/arduinoFFT)
+---
 
+## 📫 Contact
 
+Gabriel GUIET-DUPRE  
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/gabriel-guiet-dupre/)  
+📧 gabriel.guietdupre@edu.ece.fr
 
-<!-- CONTACT -->
-## Contact
-
-Gabriel GUIET-DUPRE - [in: gabriel-guiet-dupre](https://linkedin.com/in/gabriel-guiet-dupre) - gabriel.guietdupre@edu.ece.fr
-
-Project Link: [https://github.com/gab_gdp/rayCastingVideoGame](https://github.com/Gab404/my_perceptron)
-
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[linkedin-url]: https://linkedin.com/in/gabriel-guiet-dupre
+[🔗 Project Link](https://github.com/Gab404/NeuralSpeech)
