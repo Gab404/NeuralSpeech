@@ -7,6 +7,7 @@
 <p align="center">
   <h3 align="center">Neural Speech</h3>
   <p align="center">
+   <img src="./assets/arduino-due.png" alt="arduino-due" width="50%" />
     Voice recognition on Arduino Due – ECE Paris Engineering Project
   </p>
 </p>
