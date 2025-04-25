@@ -46,7 +46,7 @@ The audio signal undergoes the following processing steps:
 
 <p align="center">
   <img src="./assets/Mel_Filter_Application.png" alt="Mel Filter Application" width="45%" />
-  <img src="./assets/DCT_Matrix_Application.png" alt="DCT Matrix Application" width="45%" />
+  <img src="./assets/DCT_Matrix_Application.png" alt="DCT Matrix Application" width="50%" />
 </p>
 <p align="center"><strong>Mel Filter Application (left) & DCT Matrix Application (right)</strong></p>
 
@@ -72,7 +72,7 @@ After computing the MFCC matrix, it is passed into a lightweight CNN for binary 
 - **Dense (1 unit, Sigmoid)** → Binary output
 
 <p align="center">
-  <img src="./assets/model.png" alt="CNN Model" width="60%" />
+  <img src="./assets/model.png" alt="CNN Model" width="100%" />
 </p>
 <p align="center"><strong>My CNN Model</strong></p>
 
