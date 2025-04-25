@@ -29,12 +29,10 @@ float applyRIF(uint16_t buffer[N_SAMPLE], uint16_t indexBuffer);
 
 void cpyWinToBuffer(volatile float window[WIN_SIZE], volatile float window_2[WIN_SIZE], float winBuffer[WIN_SIZE], float vImag[WIN_SIZE]);
 void windowUpdateStatus();
+void writeSample(float value);
 
 void getFFT(float window[WIN_SIZE], ArduinoFFT<float> FFT);
 void normalizeByEnergy(float window[WIN_SIZE]);
-
-void displayBuffer(volatile uint16_t buffer[N_SAMPLE]);
-void writeSample(float value);
 
 void getMFCC(float window[WIN_SIZE], float mfccArray[N_MFCC]);
 

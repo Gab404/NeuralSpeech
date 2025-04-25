@@ -134,15 +134,15 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       window_1_waiting = false;
       window_2_waiting = false;
 
-      // Serial.println("\n-----------------");
+      Serial.println("\n-----------------");
 
-      // for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
-      //   for (uint16_t j = 0; j < N_MFCC; j++) {
-      //     Serial.print(matrixMFCC[i][j], 6);
-      //     if (j < N_MFCC - 1) Serial.print(",");
-      //   }
-      //   Serial.println();
-      // }
+      for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
+        for (uint16_t j = 0; j < N_MFCC; j++) {
+          Serial.print(matrixMFCC[i][j], 3);
+          if (j < N_MFCC - 1) Serial.print(",");
+        }
+        Serial.println("");
+      }
       
       isSignalProcessing = false;
     } else
