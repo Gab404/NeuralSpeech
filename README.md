@@ -5,11 +5,14 @@
 <br />
 
 <p align="center">
+  <strong><font size="6">Neural Speech</font></strong>
+</p>
+
+<p align="center">
   <img src="./assets/arduino-due.png" alt="arduino-due" width="20%" />
 </p>
 
 <p align="center">
-  <strong>Neural Speech</strong><br>
   Voice recognition on Arduino Due – ECE Paris Engineering Project
 </p>
 
