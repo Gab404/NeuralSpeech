@@ -47,18 +47,37 @@ void ADC_Handler() {
             }
 
             // Filtrage et décimation
-            if (++downsampleCounter >= DECIMATION_FACTOR && !windowReady) {
+            if (++downsampleCounter >= DECIMATION_FACTOR && ((window_1_processing && !window_1_ready) || (window_2_processing && !window_2_ready))) {
                 downsampleCounter = 0;
-                window[indexWindow + OVERLAP] = applyRIF(buffer, indexBufferToWin); // time = 25us
+                if (window_1_processing)
+                    window1[indexWindow + OVERLAP] = applyRIF(buffer, indexBufferToWin); // time = 25us
+                else
+                    window2[indexWindow + OVERLAP] = applyRIF(buffer, indexBufferToWin); // time = 25us
                 // writeSample(window[indexWindow + OVERLAP]);
 
                 if (++indexWindow >= WIN_SIZE - OVERLAP) {
-                    windowReady = true;
+                    if (window_1_processing) {
+                        window_1_processing = false;
+                        if (window_2_ready)
+                            window_1_waiting = true;
+                        else {
+                            window_1_ready = true;
+                            window_2_processing = true;
+                        }
+                    } else {
+                        window_2_processing = false;
+                        if (window_1_ready)
+                            window_2_waiting = true;
+                        else {
+                            window_2_ready = true;
+                            window_1_processing = true;
+                        }
+                    }
                     indexWindow = 0;
                 }
             }
             
-            if (!windowReady)
+            if (((window_1_processing && !window_1_ready) || (window_2_processing && !window_2_ready)))
                 indexBufferToWin = (indexBufferToWin + 1) % N_SAMPLE;
 
             indexBuffer = (indexBuffer + 1) % N_SAMPLE;

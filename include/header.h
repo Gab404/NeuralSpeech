@@ -19,13 +19,16 @@
 #define PIN_LED_JAUNE 5
 #define PIN_LED_BLANC 3
 #define PIN_LED_VERT 2
-#define PIN_MIC 4
+#define PIN_BTN 4
 
 // plink -serial COM5 -sercfg 460800 > "C:\Users\gabri\Downloads\audio.bin"
 
 void setupADC();
 
 float applyRIF(uint16_t buffer[N_SAMPLE], uint16_t indexBuffer);
+
+void cpyWinToBuffer(volatile float window[WIN_SIZE], volatile float window_2[WIN_SIZE], float winBuffer[WIN_SIZE], float vImag[WIN_SIZE]);
+void windowUpdateStatus();
 
 void getFFT(float window[WIN_SIZE], ArduinoFFT<float> FFT);
 void normalizeByEnergy(float window[WIN_SIZE]);

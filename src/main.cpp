@@ -4,13 +4,17 @@
 #include "model.h"
 #include "no_macro.h"
 #include <EloquentTinyML.h>
-#include <algorithm>  
-
-unsigned long time5, time6;
+#include <algorithm>
 
 // Globals variables
-volatile float window[WIN_SIZE] = {0.0f};
-volatile bool windowReady = false;
+volatile float window1[WIN_SIZE] = {0.0f};
+volatile float window2[WIN_SIZE] = {0.0f};
+volatile bool window_1_ready = false;
+volatile bool window_2_ready = false;
+volatile bool window_1_processing = true;
+volatile bool window_2_processing = false;
+volatile bool window_1_waiting = false;
+volatile bool window_2_waiting = false;
 volatile bool isSignalProcessing = false;
 
 unsigned long timeButtonClicked;
@@ -45,9 +49,7 @@ void setup() {
     while (true);
   }
 
-  // Serial.println("---- Démarrage ----");
-
-  pinMode(PIN_MIC, INPUT);
+  pinMode(PIN_BTN, INPUT);
   pinMode(PIN_LED_VERT, OUTPUT);
 
   pinMode(PIN_LED_BLANC, OUTPUT); // Blanc
@@ -61,24 +63,21 @@ void setup() {
 
 void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
 
-  if (!isSignalProcessing && digitalRead(4) == LOW) { // time = 3us
+  if (!isSignalProcessing && digitalRead(PIN_BTN) == LOW) { // time = 3us
     timeButtonClicked = millis();
     while (millis() - timeButtonClicked <= 1000);
     digitalWrite(PIN_LED_VERT, HIGH);
     isSignalProcessing = true;
   }
 
-  if (windowReady && isSignalProcessing) {
-    
-    time5 = micros();
+  if ((window_1_ready || window_2_ready) && isSignalProcessing) {
+    if (window_1_ready)
+      cpyWinToBuffer(window1, window2, winBuffer, vImag);
+    else
+      cpyWinToBuffer(window2, window1, winBuffer, vImag);
 
-    // Copy window to buffer and shift window
-    for (uint16_t i = 0; i < WIN_SIZE; i++) { // time = 88 us
-      winBuffer[i] = window[i];
-      vImag[i] = 0.0f;
-      if (i >= WIN_SIZE - OVERLAP)
-        window[i - (WIN_SIZE - OVERLAP)] = window[i];
-    }
+    // for (uint16_t i = 0; i < WIN_SIZE; i++)
+    //   writeSample(winBuffer[i]);
     
     previousGain = applyAGC(winBuffer, previousGain); // time = 770 us
 
@@ -100,10 +99,9 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
     /*------------------------*/
 
     getMFCC(winBuffer, matrixMFCC[indexMFCC]); // time = 3 350 us
-    time6 = micros();
-    Serial.println(time6 - time5);
 
     if (++indexMFCC >= TOTAL_WINDOW) {
+      digitalWrite(PIN_LED_VERT, LOW);
 
       uint16_t count = -1;
       for (uint16_t i = 0; i < TOTAL_WINDOW; i++)
@@ -122,11 +120,19 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       }
 
       
-      for (uint16_t i = 0; i < WIN_SIZE; i++)
-        window[i] = 0.0f;
+      for (uint16_t i = 0; i < WIN_SIZE; i++) {
+        window1[i] = 0.0f;
+        window2[i] = 0.0f;
+      }
       
       indexMFCC = 0;
       previousGain = 1.0f;
+      window_1_processing = true;
+      window_2_processing = false;
+      window_1_ready = false;
+      window_2_ready = false;
+      window_1_waiting = false;
+      window_2_waiting = false;
 
       // Serial.println("\n-----------------");
 
@@ -139,9 +145,7 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       // }
       
       isSignalProcessing = false;
-      digitalWrite(PIN_LED_VERT, LOW);
-    }
-
-    windowReady = false;
+    } else
+      windowUpdateStatus();
   }
 }
