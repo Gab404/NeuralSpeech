@@ -26,7 +26,7 @@ print("X test shape:", x_test.shape)
 print("Y test shape:", y_test.shape)
 
 # Neural Network
-model = get_model()
+model = get_model((50, 12, 1))
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 

@@ -1,38 +1,40 @@
 import tensorflow as tf
-import numpy as np
+import sys
 
-# 1. Charger votre modèle
-model = tf.keras.models.load_model("./model.keras")
+model = tf.keras.models.load_model("model.keras")
 
-# 2. Définir le dataset représentatif (adaptez à votre input_shape (50, 12, 1))
-def representative_dataset():
-    for _ in range(100):
-        # Génère des données simulant vos entrées réelles
-        yield [np.random.uniform(low=-1, high=1, size=(1, 50, 12, 1)).astype(np.float32)]
-
-# 3. Configuration du convertisseur
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-converter.representative_dataset = representative_dataset
-
-# 4. Conversion et sauvegarde
 tflite_model = converter.convert()
-with open("model_quant_int8.tflite", "wb") as f:
+
+# === 3. Sauvegarde du modèle .tflite ===
+with open("model.tflite", "wb") as f:
     f.write(tflite_model)
 
-print("Conversion INT8 réussie!")
+print("✅ Modèle TFLite (float32) sauvegardé sous 'model.tflite'")
 
-def convert_to_c_array(tflite_path, output_path="model.h"):
-    with open(tflite_path, "rb") as f:
-        data = f.read()
-    with open(output_path, "w") as f:
-        f.write("#ifndef MODEL_H\n#define MODEL_H\n\n")
-        f.write("const unsigned char model[] = {\n")
-        for i, byte in enumerate(data):
-            f.write(f"0x{byte:02x}," + ("\n" if (i+1) % 12 == 0 else " "))
-        f.write("\n};\n")
-        f.write(f"const unsigned int model_len = {len(data)};\n\n")
-        f.write("#endif\n")
+# === Charger le fichier TFLite ===
+with open("model.tflite", "rb") as f:
+    tflite_model = f.read()
 
-convert_to_c_array("model_quant_int8.tflite")
+# === Convertir en tableau C ===
+c_array = ', '.join(f'0x{b:02x}' for b in tflite_model)
+
+# === Création du header model.h ===
+header = f"""\
+#ifndef MODEL_H
+#define MODEL_H
+
+const unsigned char model_tflite[] = {{
+  {c_array}
+}};
+
+const int model_tflite_len = {len(tflite_model)};
+
+#endif  // MODEL_H
+"""
+
+# === Sauvegarde ===
+with open("model.h", "w") as f:
+    f.write(header)
+
+print("✅ Fichier 'model.h' généré avec succès.")

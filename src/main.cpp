@@ -1,18 +1,12 @@
-// Pour entrainer model Python 7.X -> Tensorflow 2.3.X ou 2.4.X
+// Pour entrainer model Python 7.x -> Tensorflow 2.2
 #include "header.h"
 #include "globals.h"
-
 #include "model.h"
-
 #include "no_macro.h"
-
 #include <EloquentTinyML.h>
-
 #include <algorithm>  
 
-#define N_INPUTS 600
-#define N_OUTPUTS 1
-#define TENSOR_ARENA_SIZE 40 * 1024  // ajuste si besoin
+unsigned long time5, time6;
 
 // Globals variables
 volatile float window[WIN_SIZE] = {0.0f};
@@ -44,7 +38,7 @@ Eloquent::TinyML::TfLite<
 void setup() {
   Serial.begin(460800);
 
-  ml.begin(model);
+  ml.begin(model_tflite);
 
   if (!ml.initialized()) {
     Serial.println("Erreur d'initialisation");
@@ -53,8 +47,11 @@ void setup() {
 
   // Serial.println("---- Démarrage ----");
 
-  pinMode(4, INPUT);
-  pinMode(2, OUTPUT);
+  pinMode(PIN_MIC, INPUT);
+  pinMode(PIN_LED_VERT, OUTPUT);
+
+  pinMode(PIN_LED_BLANC, OUTPUT); // Blanc
+  pinMode(PIN_LED_JAUNE, OUTPUT); // Jaune
 
   // display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   // display.clearDisplay();
@@ -67,11 +64,13 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
   if (!isSignalProcessing && digitalRead(4) == LOW) { // time = 3us
     timeButtonClicked = millis();
     while (millis() - timeButtonClicked <= 1000);
-    digitalWrite(2, HIGH);
+    digitalWrite(PIN_LED_VERT, HIGH);
     isSignalProcessing = true;
   }
 
   if (windowReady && isSignalProcessing) {
+    
+    time5 = micros();
 
     // Copy window to buffer and shift window
     for (uint16_t i = 0; i < WIN_SIZE; i++) { // time = 88 us
@@ -101,6 +100,8 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
     /*------------------------*/
 
     getMFCC(winBuffer, matrixMFCC[indexMFCC]); // time = 3 350 us
+    time6 = micros();
+    Serial.println(time6 - time5);
 
     if (++indexMFCC >= TOTAL_WINDOW) {
 
@@ -110,8 +111,15 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
           count++;
           vectMFCC[count] = matrixMFCC[i][j];
         }
+
       float prediction[1];
-      Serial.println(ml.predict(vectMFCC, prediction));
+      if (round(ml.predict(vectMFCC, prediction)) == 0) {
+        digitalWrite(PIN_LED_BLANC, HIGH);
+        digitalWrite(PIN_LED_JAUNE, LOW);
+      } else {
+        digitalWrite(PIN_LED_BLANC, LOW);
+        digitalWrite(PIN_LED_JAUNE, HIGH);
+      }
 
       
       for (uint16_t i = 0; i < WIN_SIZE; i++)
@@ -131,7 +139,7 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       // }
       
       isSignalProcessing = false;
-      digitalWrite(2, LOW);
+      digitalWrite(PIN_LED_VERT, LOW);
     }
 
     windowReady = false;
