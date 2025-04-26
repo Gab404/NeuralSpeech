@@ -18,7 +18,7 @@
 
 ---
 
-## 🧠 Audio Processing Pipeline
+## Audio Processing Pipeline
 
 The audio signal undergoes the following processing steps:
 
@@ -61,11 +61,11 @@ The audio signal undergoes the following processing steps:
 
 ---
 
-## 🤖 Deep Learning for Classification
+## Deep Learning for Classification
 
 After computing the MFCC matrix, it is passed into a lightweight CNN for binary classification.
 
-### 🧩 Model Architecture
+### Model Architecture
 
 - **Input:** `(50, 12, 1)` MFCC matrix  
 - **Conv2D (8 filters, 3×3)** + **ReLU**  
@@ -86,7 +86,7 @@ The processing is **real-time**: ~1.5s for recording, processing, and prediction
 
 ---
 
-## 🛠️ Built With
+## Built With
 
 - [PlatformIO](https://platformio.org/)
 - [Arduino Due](https://docs.arduino.cc/hardware/due/)
