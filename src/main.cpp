@@ -75,28 +75,10 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       cpyWinToBuffer(window1, window2, winBuffer, vImag);
     else
       cpyWinToBuffer(window2, window1, winBuffer, vImag);
-
-    // for (uint16_t i = 0; i < WIN_SIZE; i++)
-    //   writeSample(winBuffer[i]);
     
     previousGain = applyAGC(winBuffer, previousGain); // time = 770 us
 
     getFFT(winBuffer, FFT); // time = 22 380 us
-
-
-    // ---- Display OLED ----
-
-    // uint8_t bar_height;
-
-    // display.clearDisplay();
-    // for (uint8_t i = 0; i < WIN_SIZE / 2; i++) {
-    //     bar_height = (uint8_t)((winBuffer[i] / 13) * 64);
-    //     display.drawLine(i, 63, i, 63 - bar_height, WHITE);
-    // }
-  
-    // display.display();
-
-    /*------------------------*/
 
     getMFCC(winBuffer, matrixMFCC[indexMFCC]); // time = 3 350 us
 
@@ -118,31 +100,10 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
         digitalWrite(PIN_LED_BLANC, LOW);
         digitalWrite(PIN_LED_JAUNE, HIGH);
       }
-
-      
-      for (uint16_t i = 0; i < WIN_SIZE; i++) {
-        window1[i] = 0.0f;
-        window2[i] = 0.0f;
-      }
       
       indexMFCC = 0;
       previousGain = 1.0f;
-      window_1_processing = true;
-      window_2_processing = false;
-      window_1_ready = false;
-      window_2_ready = false;
-      window_1_waiting = false;
-      window_2_waiting = false;
-
-      Serial.println("\n-----------------");
-
-      for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
-        for (uint16_t j = 0; j < N_MFCC; j++) {
-          Serial.print(matrixMFCC[i][j], 3);
-          if (j < N_MFCC - 1) Serial.print(",");
-        }
-        Serial.println("");
-      }
+      resetGlobals();
       
       isSignalProcessing = false;
     } else

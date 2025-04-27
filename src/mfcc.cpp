@@ -51,11 +51,11 @@ void getMFCC(float window[WIN_SIZE], float mfccArray[N_MFCC]) {
 
     getLog(melEnergies); // time = 0ms
 
-    for (uint8_t i = 0; i < N_MEL; i++) {
-        Serial.print(melEnergies[i], 3);
-        if (i < N_MEL - 1) Serial.print(",");
-    }
-    Serial.println("");  // Fin d'une trame
+    // for (uint8_t i = 0; i < N_MEL; i++) {
+    //     Serial.print(melEnergies[i], 3);
+    //     if (i < N_MEL - 1) Serial.print(",");
+    // }
+    // Serial.println("");  // Fin d'une trame
 
     for (uint8_t i = 0; i < N_MFCC; i++) { // time = 1ms
         mfcc = 0.0f;

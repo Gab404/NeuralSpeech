@@ -40,3 +40,17 @@ void writeSample(float value) {
     Serial.write(lowByte);
     Serial.write(highByte);
 }
+
+void resetGlobals() {
+    for (uint16_t i = 0; i < WIN_SIZE; i++) {
+        window1[i] = 0.0f;
+        window2[i] = 0.0f;
+    }
+
+    window_1_processing = true;
+    window_2_processing = false;
+    window_1_ready = false;
+    window_2_ready = false;
+    window_1_waiting = false;
+    window_2_waiting = false;
+}
