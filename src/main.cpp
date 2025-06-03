@@ -1,12 +1,16 @@
-// Pour entrainer model Python 7.x -> Tensorflow 2.2
 #include "header.h"
 #include "globals.h"
 #include "model.h"
 #include "no_macro.h"
 #include <EloquentTinyML.h>
 #include <algorithm>
+#include <Adafruit_SSD1306.h>
+#include <Wire.h>
 
-// Globals variables
+// OLED
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+
+// Globals
 volatile float window1[WIN_SIZE] = {0.0f};
 volatile float window2[WIN_SIZE] = {0.0f};
 volatile bool window_1_ready = false;
@@ -18,22 +22,17 @@ volatile bool window_2_waiting = false;
 volatile bool isSignalProcessing = false;
 
 unsigned long timeButtonClicked;
-
 float matrixMFCC[TOTAL_WINDOW][N_MFCC];
 float vectMFCC[TOTAL_WINDOW * N_MFCC];
 uint8_t indexMFCC = 0;
-
 float winBuffer[WIN_SIZE];
 float vImag[WIN_SIZE];
-
 float previousGain = 1.0f;
-
 int buttonState = 0;
 
-// Adafruit_SSD1306 display(128, 64);
 ArduinoFFT<float> FFT = ArduinoFFT<float>(winBuffer, vImag, WIN_SIZE, 8000);
 
-Eloquent::TinyML::TfLite<    
+Eloquent::TinyML::TfLite<
     N_INPUTS,
     N_OUTPUTS,
     TENSOR_ARENA_SIZE
@@ -42,28 +41,31 @@ Eloquent::TinyML::TfLite<
 void setup() {
   Serial.begin(460800);
 
-  ml.begin(model_tflite);
+  // OLED
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("Erreur OLED");
+    while (true);
+  }
+  display.clearDisplay();
+  display.display();
 
+  // IA
+  ml.begin(model_tflite);
   if (!ml.initialized()) {
-    Serial.println("Erreur d'initialisation");
+    Serial.println("Erreur TinyML");
     while (true);
   }
 
   pinMode(PIN_BTN, INPUT);
   pinMode(PIN_LED_VERT, OUTPUT);
-
-  pinMode(PIN_LED_BLANC, OUTPUT); // Blanc
-  pinMode(PIN_LED_JAUNE, OUTPUT); // Jaune
-
-  // display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  // display.clearDisplay();
+  pinMode(PIN_LED_BLANC, OUTPUT);
+  pinMode(PIN_LED_JAUNE, OUTPUT);
 
   setupADC();
 }
 
-void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
-
-  if (!isSignalProcessing && digitalRead(PIN_BTN) == LOW) { // time = 3us
+void loop() {
+  if (!isSignalProcessing && digitalRead(PIN_BTN) == LOW) {
     timeButtonClicked = millis();
     while (millis() - timeButtonClicked <= 1000);
     digitalWrite(PIN_LED_VERT, HIGH);
@@ -75,38 +77,70 @@ void loop() { // time = 1.3s (37.5% overlap) | time = 1.5s (50% overlap)
       cpyWinToBuffer(window1, window2, winBuffer, vImag);
     else
       cpyWinToBuffer(window2, window1, winBuffer, vImag);
-    
-    previousGain = applyAGC(winBuffer, previousGain); // time = 770 us
 
-    getFFT(winBuffer, FFT); // time = 22 380 us
-
-    getMFCC(winBuffer, matrixMFCC[indexMFCC]); // time = 3 350 us
+    previousGain = applyAGC(winBuffer, previousGain);
+    getFFT(winBuffer, FFT);
+    getMFCC(winBuffer, matrixMFCC[indexMFCC]);
 
     if (++indexMFCC >= TOTAL_WINDOW) {
       digitalWrite(PIN_LED_VERT, LOW);
 
       uint16_t count = -1;
-      for (uint16_t i = 0; i < TOTAL_WINDOW; i++)
+      for (uint16_t i = 0; i < TOTAL_WINDOW; i++) {
         for (uint16_t j = 0; j < N_MFCC; j++) {
           count++;
           vectMFCC[count] = matrixMFCC[i][j];
         }
+      }
 
-      float prediction[1];
-      if (round(ml.predict(vectMFCC, prediction)) == 0) {
+      float prediction[4];
+      uint8_t result = 0;
+      ml.predict(vectMFCC, prediction);
+      for (uint8_t i = 0; i < 4; i++) {
+        if (prediction[i] > prediction[result])
+          result = i;
+      }
+
+      if (result == 0) {
         digitalWrite(PIN_LED_BLANC, HIGH);
         digitalWrite(PIN_LED_JAUNE, LOW);
-      } else {
+      } else if (result == 1) {
+        digitalWrite(PIN_LED_JAUNE, LOW);
+        digitalWrite(PIN_LED_BLANC, LOW);
+
+        display.clearDisplay();
+        display.setTextSize(2);
+        display.setTextColor(SSD1306_WHITE);
+
+        unsigned long initTime = millis();
+        while ((millis() - initTime) / 1000 <= 5) {
+          display.clearDisplay();
+          display.setCursor(32, 0);
+          display.println("Heure");
+          display.setCursor(64, 32);
+          display.println(5 - (millis() - initTime) / 1000);
+          
+          display.display();
+        }
+      
+        display.clearDisplay();
+        display.display();
+
+      } else if (result == 2) {
         digitalWrite(PIN_LED_BLANC, LOW);
         digitalWrite(PIN_LED_JAUNE, HIGH);
+      } else {
+        Serial.println("Musique");
+        digitalWrite(PIN_LED_JAUNE, LOW);
+        digitalWrite(PIN_LED_BLANC, LOW);
       }
-      
+
       indexMFCC = 0;
       previousGain = 1.0f;
       resetGlobals();
-      
       isSignalProcessing = false;
-    } else
+    } else {
       windowUpdateStatus();
+    }
   }
 }
