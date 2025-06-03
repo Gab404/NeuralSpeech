@@ -15,7 +15,7 @@
 
 // IA
 #define N_INPUTS 600
-#define N_OUTPUTS 1
+#define N_OUTPUTS 4
 #define TENSOR_ARENA_SIZE 30 * 1024  // ajuste si besoin
 
 // PIN
