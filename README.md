@@ -86,6 +86,27 @@ The processing is **real-time**: ~1.5s for recording, processing, and prediction
 
 ---
 
+## Deep Learning for Classification
+
+One second after clicked the button, the green LED turns on. While It's on It means you can speak. You have one second to speak. 
+
+Please note that the dataset has been made with just one voice so can't work with other voices. You must update the dataset and train the model again on the new one.
+
+### Hardware Architecture
+
+- **Arduino Due**  
+- **Microphone MAX9814**  (A0)
+- **LEDs** (Yellow D5, White D3, Green D2)  
+- **Push Button**  (D4)
+
+<p align="center">
+  <img src="./assets/shema_hardware.png" alt="hardware" width="100%" />
+</p>
+<p align="center"><strong>Hardware Shema</strong></p>
+
+
+---
+
 ## Built With
 
 - [PlatformIO](https://platformio.org/)
