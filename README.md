@@ -100,7 +100,7 @@ Please note that the dataset has been made with just one voice so can't work wit
 - **Push Button**  (D4)
 
 <p align="center">
-  <img src="./assets/shema_hardware.png" alt="hardware" width="100%" />
+  <img src="./assets/shema_hardware.png" alt="hardware" width="60%" />
 </p>
 <p align="center"><strong>Hardware Shema</strong></p>
 
