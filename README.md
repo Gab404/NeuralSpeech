@@ -86,13 +86,13 @@ The processing is **real-time**: ~1.5s for recording, processing, and prediction
 
 ---
 
-## Deep Learning for Classification
+## Hardware Architecture
 
 One second after clicked the button, the green LED turns on. While It's on It means you can speak. You have one second to speak. 
 
 Please note that the dataset has been made with just one voice so can't work with other voices. You must update the dataset and train the model again on the new one.
 
-### Hardware Architecture
+### Components
 
 - **Arduino Due**  
 - **Microphone MAX9814**  (A0)
