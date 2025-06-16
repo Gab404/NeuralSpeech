@@ -16,6 +16,8 @@
   Voice recognition on Arduino Due – ECE Paris Engineering Project
 </p>
 
+[🔗 Youtube Presentation](https://youtu.be/YG06Z6M16y0?si=HFcJKQBW7bdmQSln)
+
 ---
 
 ## Audio Processing Pipeline
