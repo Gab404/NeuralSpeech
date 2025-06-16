@@ -2,7 +2,6 @@
 #define HEADER_H
 
 #include <arduinoFFT.h>
-// #include <Adafruit_SSD1306.h>
 #include "globals.h"
 
 // SIGNAL PROCESSING
@@ -27,8 +26,6 @@
 // SCREEN
 #define SCREEN_HEIGHT 64
 #define SCREEN_WIDTH 128
-
-// plink -serial COM5 -sercfg 460800 > "C:\Users\gabri\Downloads\audio.bin"
 
 void setupADC();
 

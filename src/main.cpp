@@ -4,11 +4,8 @@
 #include "no_macro.h"
 #include <EloquentTinyML.h>
 #include <algorithm>
-#include <Adafruit_SSD1306.h>
 #include <Wire.h>
 
-// OLED
-Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 // Globals
 volatile float window1[WIN_SIZE] = {0.0f};
@@ -38,16 +35,27 @@ Eloquent::TinyML::TfLite<
     TENSOR_ARENA_SIZE
 > ml;
 
+void vocalCommand(uint8_t result)
+{
+  if (result == 0) {
+    digitalWrite(PIN_LED_BLANC, HIGH);
+    digitalWrite(PIN_LED_JAUNE, LOW);
+  } else if (result == 1) {
+    digitalWrite(PIN_LED_JAUNE, LOW);
+    digitalWrite(PIN_LED_BLANC, LOW);
+    Serial.println("Heure");
+  } else if (result == 2) {
+    digitalWrite(PIN_LED_BLANC, LOW);
+    digitalWrite(PIN_LED_JAUNE, HIGH);
+  } else {
+    Serial.println("Musique");
+    digitalWrite(PIN_LED_JAUNE, LOW);
+    digitalWrite(PIN_LED_BLANC, LOW);
+  }
+}
+
 void setup() {
   Serial.begin(460800);
-
-  // OLED
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println("Erreur OLED");
-    while (true);
-  }
-  display.clearDisplay();
-  display.display();
 
   // IA
   ml.begin(model_tflite);
@@ -101,39 +109,7 @@ void loop() {
           result = i;
       }
 
-      if (result == 0) {
-        digitalWrite(PIN_LED_BLANC, HIGH);
-        digitalWrite(PIN_LED_JAUNE, LOW);
-      } else if (result == 1) {
-        digitalWrite(PIN_LED_JAUNE, LOW);
-        digitalWrite(PIN_LED_BLANC, LOW);
-
-        display.clearDisplay();
-        display.setTextSize(2);
-        display.setTextColor(SSD1306_WHITE);
-
-        unsigned long initTime = millis();
-        while ((millis() - initTime) / 1000 <= 5) {
-          display.clearDisplay();
-          display.setCursor(32, 0);
-          display.println("Heure");
-          display.setCursor(64, 32);
-          display.println(5 - (millis() - initTime) / 1000);
-          
-          display.display();
-        }
-      
-        display.clearDisplay();
-        display.display();
-
-      } else if (result == 2) {
-        digitalWrite(PIN_LED_BLANC, LOW);
-        digitalWrite(PIN_LED_JAUNE, HIGH);
-      } else {
-        Serial.println("Musique");
-        digitalWrite(PIN_LED_JAUNE, LOW);
-        digitalWrite(PIN_LED_BLANC, LOW);
-      }
+      vocalCommand(result);
 
       indexMFCC = 0;
       previousGain = 1.0f;
