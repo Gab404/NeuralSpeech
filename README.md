@@ -1,7 +1,5 @@
 <div id="top"></div>
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/gabriel-guiet-dupre/)
-
 <br />
 
 <p align="center">
@@ -16,7 +14,9 @@
   Voice recognition on Arduino Due – ECE Paris Engineering Project
 </p>
 
-[🔗 Youtube Presentation](https://youtu.be/YG06Z6M16y0?si=HFcJKQBW7bdmQSln)
+[📺 Youtube Presentation](https://youtu.be/YG06Z6M16y0?si=HFcJKQBW7bdmQSln)
+
+[💼 Linkedin Presentation](https://www.linkedin.com/posts/ece-ecole-ingenieurs_pr%C3%A9sentation-du-projet-neural-speech-2-home-activity-7346473860927504384-Gp5L?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAADk_VLMBOK1x8HAR_nMdeHzrMCtjAMdDdpw)
 
 ---
 
@@ -104,7 +104,7 @@ Please note that the dataset has been made with just one voice so can't work wit
 <p align="center">
   <img src="./assets/shema_hardware.png" alt="hardware" width="60%" />
 </p>
-<p align="center"><strong>Hardware Shema</strong></p>
+<p align="center"><strong>Hardware Schema</strong></p>
 
 
 ---
@@ -125,5 +125,3 @@ Please note that the dataset has been made with just one voice so can't work wit
 Gabriel GUIET-DUPRE  
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/gabriel-guiet-dupre/)  
 📧 gabriel.guietdupre@edu.ece.fr
-
-[🔗 Project Link](https://github.com/Gab404/NeuralSpeech)
